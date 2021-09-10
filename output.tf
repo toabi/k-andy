@@ -23,3 +23,11 @@ output "k3s_token" {
 output "network_id" {
   value = hcloud_network.k3s.id
 }
+
+output "subnet_id" {
+  value = hcloud_network_subnet.k3s_nodes.id
+}
+
+output "cidr_block" {
+  value = var.subnet_cidr
+}

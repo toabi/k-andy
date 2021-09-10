@@ -62,6 +62,8 @@ See a more detailed example with walk-through in the [example folder](./example)
 | <a name="output_kubeconfig_file"></a> [kubeconfig\_file](#output\_kubeconfig\_file) | Kubeconfig file content with external IP address |
 | <a name="output_network_id"></a> [network\_id](#output\_network\_id) | n/a |
 | <a name="output_ssh_private_key"></a> [ssh\_private\_key](#output\_ssh\_private\_key) | Key to SSH into nodes |
+| <a name="output_subnet_id"></a> [subnet\_id](#output\_subnet\_id) | Subnet ID |
+| <a name="output_cidr_block"></a> [cidr\_block](#output\_cidr\_block) | CIDR Block of the network |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 
 ## Common Operations
