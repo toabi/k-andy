@@ -126,3 +126,74 @@ resource "kubectl_manifest" "upgrade_plan_agents" {
     }
   })
 }
+
+resource "kubectl_manifest" "ubuntu_upgrade_config" {
+  yaml_body = yamlencode({
+    apiVersion = "v1"
+    kind = "Secret"
+    metadata = {
+      name = "ubuntu-upgrade"
+      namespace = "system-upgrade"
+    }
+    stringData = {
+      "upgrade.sh" = <<EOF
+#!/bin/sh
+apt-get update -y
+apt-get upgrade -y
+EOF
+    }
+  })
+}
+
+
+resource "kubectl_manifest" "upgrade_plan_ubuntu" {
+  count = var.upgrade_k3s_target_version != null && var.enable_upgrade_controller ? 1 : 0
+  yaml_body = yamlencode({
+    apiVersion = "upgrade.cattle.io/v1"
+    kind       = "Plan"
+    metadata = {
+      labels = {
+        "k3s-upgrade" = "ubuntu"
+      }
+      name      = "ubuntu-upgrade"
+      namespace = "system-upgrade"
+    }
+    spec = {
+      version     = data.hcloud_image.ubuntu.os_version
+      concurrency = 1
+      nodeSelector = {
+        matchExpressions = [
+          {
+            "key"      = "ubuntu-upgrade"
+            "operator" = "Exists"
+          },
+          {
+            "key"      = "ubuntu-upgrade"
+            "operator" = "NotIn"
+            "values" = [
+              "disabled",
+              "false",
+            ]
+          }
+        ]
+      }
+      drain = {
+        force                    = true
+        skipWaitForDeleteTimeout = 60
+      }
+      serviceAccountName = "system-upgrade"
+      secrets = [
+        {
+          name = "ubuntu-upgrade"
+          path = "/host/run/system-upgrade/secrets/ubuntu-upgrade"
+        }
+      ]
+      upgrade = {
+        image = "ubuntu"
+        command = ["chroot", "/host"]
+        args = ["sh", "/run/system-upgrade/secrets/ubuntu-upgrade/upgrade.sh"]
+      }
+      tolerations = var.upgrade_node_additional_tolerations
+    }
+  })
+}
